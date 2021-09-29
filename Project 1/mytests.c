@@ -1,3 +1,9 @@
+/**
+ * Name: Amara Tariq
+ * Email: amaratariq@u.boisestate.edu
+ * Github Username: TheRealAt0th3t
+ */
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,10 +22,6 @@ void serial_mergesort(int A[], int p, int r);
 void merge(int A[], int p, int q, int r);
 void insertion_sort(int A[], int p, int r);
 double getMilliSeconds(void);
-
-//
-void parallel_mergesort(int A[], int p, int r, int threadNum);
-void* sorted_thread(void* st);
 
 /*
 ---------------------------------------------------------------------------
@@ -107,8 +109,6 @@ int check_if_sorted(int A[], int n)
 }
 
 
-
-
 int main(int argc, char **argv) {
 
 	if (argc < 2) { // there must be at least one command-line argument
@@ -124,42 +124,37 @@ int main(int argc, char **argv) {
 
 	int *A0 = (int *) malloc(sizeof(int) * (n+1)); // n+1 since we are using A[1]..A[n]
 	int *A1 = (int *) malloc(sizeof(int) * (n+1));
-	
-	int i = 0;
 
 	// generate random input
 	generate_random_array(A0,n, seed);
-	for(i = 0; i < n; i++){
-	A1[i] = A0[i];
-	}
+	memcpy(A1,A0,(n+1)*sizeof(int));
 
 	//serial sort
-	//double start_time_0;
-	//double sorting_time_0;
+	double start_time_0;
+	double sorting_time_0;
 	//parallel sort
 	double start_time_1;
 	double sorting_time_1;
 
-	// sort the input (and time it)
-	//start_time_0 = getMilliSeconds();
-	//serial_mergesort(A0,1,n);
-	//sorting_time_0 = getMilliSeconds() - start_time_0;
+	//sort the input (and time it)
+	start_time_0 = getMilliSeconds();
+	serial_mergesort(A0,1,n);
+	sorting_time_0 = getMilliSeconds() - start_time_0;
 
 	// sort the input (and time it)
 	start_time_1 = getMilliSeconds();
-	parallel_mergesort(A0,1,n,threadNum);
-	//serial_mergesort(A0,1,n);
+	parallel_mergesort(A1,1,n,threadNum);
 	sorting_time_1 = getMilliSeconds() - start_time_1;
 
 	// print results if correctly sorted otherwise cry foul and exit
-	if (check_if_sorted(A0,n)) { //check_if_sorted(A0,n) && 
-		//printf("For Serial Sort: Sorting %d elements took %4.2lf seconds.\n", n,  sorting_time_0/1000.0);
+	if (check_if_sorted(A0,n) && check_if_sorted(A1,n)) { //check_if_sorted(A0,n) && 
+		printf("For Serial Sort: Sorting %d elements took %4.2lf seconds.\n", n,  sorting_time_0/1000.0);
 		printf("For Parallel Sort: Sorting %d elements took %4.2lf seconds.\n", n,  sorting_time_1/1000.0);
 	} else {
 		printf("%s: sorting failed!!!!\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	free(A0);
-
+	free(A1);
 	exit(EXIT_SUCCESS);
 }
