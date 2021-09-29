@@ -1,7 +1,7 @@
 ## Project Number/Title 
 
 * Author: Amara Tariq
-* Class: CS452/CS552 [Operating Systems] Section #num
+* Class: CS452/CS552 [Operating Systems] Section #001
 
 ## Overview
 
@@ -10,7 +10,18 @@ sentences, you're going too far. Generally you should be pulling this
 right from the project specification. We don't want you to just cut and
 paste, but paraphrase what is stated in the project specification.
 
+This program implements mergesort using the pthread library. Serial_mergesort is the single thread version, 
+while parallel_mergesort is the multithread version. The program generates a random array of n length, 
+duplicates it, and sends one into serial_mergesort, and another in parallel_mergesort. The output is then 
+the time it took for each version to sort the array. 
+
 ## Manifest
+
+Makefile - 
+mytests.c - This is the driver file, which also creates the array and the functions that time the sort. 
+lab.h - This is our header file which contains all of the function prototypes and global variables.
+lab.c - This file contains all the sorting functions. 
+runval.sh - This is a script file that runs valgrind to check for memory leaks and other errors in the project.
 
 A listing of source files and other non-generated files and a brief (one line)
 explanation of the purpose of each file.
