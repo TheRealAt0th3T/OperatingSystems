@@ -9,7 +9,6 @@
 #include <limits.h>
 #include <pthread.h>
 
-
 /*
  * insertion_sort(int A[], int p, int r):
  *
@@ -62,7 +61,7 @@ void merge(int A[], int p, int q, int r)
 	int i = p;
 	int j = q+1;
 	int k = 0;
-	int l=0;
+	int l = 0;
 
 	// as long as both lists have unexamined elements
 	// this loop keeps executing.
@@ -141,7 +140,7 @@ void parallel_mergesort(int A[], int p, int r, int threadNum){
 	int end = 0; //r
 	int q = 0; //q for merge()
 	int i = 0; //for all the for-loops
-	i=p;
+
 	int subArrayLength = r/threadNum; //dividing main array into sub arrays for each thread to have same # of elements
 
 	//Malloc to efficiently set memory aside for our structs for all the threads
@@ -164,7 +163,7 @@ void parallel_mergesort(int A[], int p, int r, int threadNum){
 	for(i = 0; i < threadNum; i++){
 
 		//Setting the p and r for each subarray
-		beg = i * subArrayLength;
+		beg = i * subArrayLength + p;
 		end = beg + subArrayLength - 1; 
 
 		//Making sure that the last subarray end is correct 
@@ -179,8 +178,6 @@ void parallel_mergesort(int A[], int p, int r, int threadNum){
 		sArr -> A = A; //going to be the same for each thread
 		sArr -> p = beg;
 		sArr -> r = end;
-
-		
 
 		tStruct[i] = sArr; //keeping each subarray struct together for later merging
 		
