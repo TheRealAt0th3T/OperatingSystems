@@ -1,127 +1,53 @@
-# Overview
+## Project Number/Title 
 
-In this project, you will implement a multithreaded version of the
-mergesort algorithm using the pthread library.  We have provided you
-with a single-threaded version of mergesort that you will be
-converting to use threads. Makefiles have been provided that you can
-use directly.
+* Author: Amara Tariq
+* Class: CS452/CS552 [Operating Systems] Section #num
 
+## Overview
 
-## Learning Objectives
+Concisely explain what the program does. If this exceeds a couple of
+sentences, you're going too far. Generally you should be pulling this
+right from the project specification. We don't want you to just cut and
+paste, but paraphrase what is stated in the project specification.
 
-- Take a singled threaded algorithm and safely convert it to threaded
-  to see a performance gain.
-- To gain more experience writing concurrent code.
-- Explore the pthread library
+## Manifest
 
+A listing of source files and other non-generated files and a brief (one line)
+explanation of the purpose of each file.
 
-## Book References
+## Building the project
 
-Read these chapters carefully in order to prepare yourself for this project.
+This section should tell the user how to build your code.  If you are
+delivering a library, where does it need to be installed or how do you use
+it? Is this an executable, if so how can a user get up to speed as fast
+as possible.
 
-- [Intro to Threads](http://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf)
-- [Threads API](http://pages.cs.wisc.edu/~remzi/OSTEP/threads-api.pdf)
+## Features and usage
 
-## Make Concurrent
+Summarize the main features of your program. It is also appropriate to
+instruct the user how to use your program.
 
-Convert the serial mergesort code to use multiple threads using the
-pthread library. Your program should limit the number of threads it
-uses via a command line argument (for example, this could be the total
-number of threads or number of levels before cutting off new thread
-generation). You must get a speedup of at least 2 with 4 or more cores
-to get full credit on this project.  Use n = 100,000,000 elements for
-your testing.
+## Testing
 
-NOTE: Just because you see a speedup of 2 does not guarantee full
-credit. You can easily hardcode the number of threads and hardcode the
-branches to get a speedup of 2. Your code MUST work with a variable
-number of threads!  Simply getting a speedup of 2 does not indicate
-that you did the assignment correctly.
+This section should detail how you tested your code. Simply stating "I ran
+it a few times and it seems to work" is not sufficient. Your testing needs to
+be detailed here.
 
-You will need to update mytests.c to accept a number of threads as a
-command line argument. The updated version of mytests should include
-timing results for both the serial and parallel versions of merge
-sort.
+## Known Bugs
 
-## Implementation Analysis (Graduate students only)
+List known bugs that you weren't able to fix (or ran out of time to fix).
 
-Create a file named speedup.pdf (in the root directory) that analyses
-the following two aspects of your mergesort solution.
+## Reflection and Self Assessment
 
-**Efficiency** - Analyse the thread efficiency by examining how the
-threaded implementation’s performance compares to the single threaded
-implementation. Include a chart showing the speedups obtained with
-varying number of threads (from 1 to 8). The speedups should be relative
-to the serial mergesort. Please also note the number of cores on the
-system that you are testing.  All tests cases should be run with 100
-million elements. Please discuss whether the speedup increases
-linearly as the number of threads are increased.
+Discuss the issues you encountered during development and testing. What
+problems did you have? What did you have to research and learn on your
+own? What kinds of errors did you get? How did you fix them?
 
-**Effectiveness** - Analyse the effectiveness of your threaded
-implementation by comparing sorting time of your threaded solution to
-the single threaded solution. Run both the serial mergesort and
-threaded mergesort with elements in the range from 1,000,000 to
-100,000,000, incrementing by 1M each time.  The threaded version of
-merge sort should be run with 5 threads for all test cases.  Plot the
-timing results in a line chart (google sheets or excel) and compare
-the results. Please discuss whether the threaded version always
-performs better than the serial version.
+What parts of the project did you find challenging? Is there anything that
+finally "clicked" for you in the process of working on this project? How well
+did the development and testing process go for you?
 
-HINT: You can make the chart using any tool want (excel, google docs,
-etc.) as long as you can create a pdf as your final
-deliverable. Look in the folder example for what your chart should
-look like. Also, it may be useful to add an option to mytests.c to output 
-timing results speedup calculation in a CSV format.  This will make it 
-significantly easier to generate the required data for the implementation 
-analysis report.
+## Sources used
 
-## Hints
-
-- Do not modify the given serial_mergesort function. Instead create a
-  new parallel_mergesort function that will call serial_mergesort as a
-  base case.
-- You can stop the recursion using the number of levels in the sorting
-  tree or by number of threads. It is simpler to stop it by the number
-  of levels.
-
-## Grading Rubric (for Undergraduate students)
-
-All grading will be executed on onyx.boisestate.edu. Submissions
-that fail to compile will not being graded.
-
-- [30 pts] Make concurrent
-  - [10 pts] You got a speedup of at least 2 with 4 or more cores 
-  - [10 pts] mytests.c accepts a number of threads (or a number of levels) as a command line argument
-  - [10 pts] Correctly creates new threads
-- [5 pts] Code quality for **lab.c**
-  - [2.5 pts] Code is formatted correctly and follows a consistent style
-  - [2.5 pts] Code is commented when necessary
-- [10 pts] Compiler warnings **ALL files**
-  - Each compiler warning will result in a 3 point deduction.
-  - You are not allowed to suppress warnings
-  - You must build with the flags ```-Wall -Wextra -Wpointer-arith -Wstrict-prototypes -std=gnu89```
-- [5 pts] Valgrind reports no memory leaks or read/write errors
-  - As reported by **runval.sh**
-  - This is a **PASS/FAIL** score. 1 read/write error or leaking 1
-    byte will result in a zero for this section. There is no partial
-    credit for this section.
-
-## Grading Rubric (for Graduate students)
-- [15 pts] Make concurrent
-  - [5 pts] You got a speedup of at least 2 with 4 or more cores 
-  - [5 pts] mytests.c accepts a number of threads (or a number of levels) as a command line argument
-  - [5 pts] Correctly creates new threads
-- [15 pts] Implementation analysis (speedup.pdf)
-  - Score will reflect the quality of the analysis.
-- [5 pts] Code quality for **lab.c**
-  - [2.5 pts] Code is formatted correctly and follows a consistent style
-  - [2.5 pts] Code is commented when necessary
-- [10 pts] Compiler warnings **ALL files**
-  - Each compiler warning will result in a 3 point deduction.
-  - You are not allowed to suppress warnings
-  - You must build with the flags ```-Wall -Wextra -Wpointer-arith -Wstrict-prototypes -std=gnu89```
-- [5 pts] Valgrind reports no memory leaks or read/write errors
-  - As reported by **runval.sh**
-  - This is a **PASS/FAIL** score. 1 read/write error or leaking 1
-    byte will result in a zero for this section. There is no partial
-    credit for this section.
+If you used any sources outside of the text book you should list them here. If you looked something up on
+stackoverflow.com and fail to cite it in this section it will be considered plagiarism and be dealt with accordingly. So be safe CITE!
