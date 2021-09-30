@@ -17,14 +17,14 @@ the time it took for each version to sort the array.
 
 ## Manifest
 
-* Makefile - 
+A listing of source files and other non-generated files and a brief (one line)
+explanation of the purpose of each file.
+
+* Makefile - This builds the entire project, creating all executables, and can also clean up, in order to run the program. 
 * mytests.c - This is the driver file, which also creates the array and the functions that time the sort. 
 * lab.h - This is our header file which contains all of the function prototypes and global variables.
 * lab.c - This file contains all the sorting functions. 
 * runval.sh - This is a script file that runs valgrind to check for memory leaks and other errors in the project.
-
-A listing of source files and other non-generated files and a brief (one line)
-explanation of the purpose of each file.
 
 ## Building the project
 
@@ -32,6 +32,10 @@ This section should tell the user how to build your code.  If you are
 delivering a library, where does it need to be installed or how do you use
 it? Is this an executable, if so how can a user get up to speed as fast
 as possible.
+
+To compile the program, user must call:
+
+make
 
 ## Features and usage
 
