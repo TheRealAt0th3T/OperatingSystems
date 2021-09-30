@@ -35,7 +35,7 @@ as possible.
 
 To compile the program, user must call:
 
-make
+'''make'''
 
 ## Features and usage
 
