@@ -5,11 +5,6 @@
 
 ## Overview
 
-Concisely explain what the program does. If this exceeds a couple of
-sentences, you're going too far. Generally you should be pulling this
-right from the project specification. We don't want you to just cut and
-paste, but paraphrase what is stated in the project specification.
-
 This program implements mergesort using the pthread library. Serial_mergesort is the single thread version, 
 while parallel_mergesort is the multithread version. The program generates a random array of n length, 
 duplicates it, and sends one into serial_mergesort, and another in parallel_mergesort. The output is then 
@@ -17,50 +12,66 @@ the time it took for each version to sort the array.
 
 ## Manifest
 
-A listing of source files and other non-generated files and a brief (one line)
-explanation of the purpose of each file.
-
 * Makefile - This builds the entire project, creating all executables, and can also clean up, in order to run the program. 
 * mytests.c - This is the driver file, which also creates the array and the functions that time the sort. 
-* lab.h - This is our header file which contains all of the function prototypes and global variables.
-* lab.c - This file contains all the sorting functions. 
+* lab.h - This header file includes function prototypes, which when added, allow files to be able to call functions listed here.
+* lab.c - This file contains all the sorting functions where the array is actually processed. 
 * runval.sh - This is a script file that runs valgrind to check for memory leaks and other errors in the project.
 
 ## Building the project
 
-This section should tell the user how to build your code.  If you are
-delivering a library, where does it need to be installed or how do you use
-it? Is this an executable, if so how can a user get up to speed as fast
-as possible.
-
-To compile the program, user must call:
-
+To compile the program, user must call:<br>
 ```make```
+
+To run the program: <br>
+``` ./mytests <input size> <number of threads> [<seed>] ```
+
+To remove any object files and executables: <br>
+```make clean```
+
+To run Valgrind in order to run additional tests: <br> 
+```./runval.sh``` <br>
+or <br>
+```valgrind --leak-check=full ./mytests <input size> <number of threads> [<seed>]```
 
 ## Features and usage
 
-Summarize the main features of your program. It is also appropriate to
-instruct the user how to use your program.
+The user inputs two main arguments, the input size, which dictates the size of the array to be sorted, 
+and the number of threads they would like to be used. This program features being able to take in that 
+input size and then generate two random duplicate arrays. These arrays are then ran through both serial 
+mergesort and parallel mergesort, with serial sorting with a single thread, while parallel takes in number 
+of threads from the command line in order to then process and sort the array. The processing time to get 
+sorted arrays is tracked and then output to the user to compare the different efficiencies.
 
 ## Testing
 
-This section should detail how you tested your code. Simply stating "I ran
-it a few times and it seems to work" is not sufficient. Your testing needs to
-be detailed here.
+The first main tests were to make sure the program compiled correctly. As I was not very familiar with C, there
+were a lot of syntax errors and minor formatting errors (ie declaring an int outside of the for loop before using it).
+After successful compilation, I ran the program to see if it would either succeed at sorting, and thus generate output, 
+or fail it. The main issue I kept having was segmentation faults. This was due to errors in how I was mallocing my variables.
+The other main error occured when testing with valgrind. I had a program that correctly sorted and printed a sorted array, but
+valgrind returned errors. After discussing with the TA and the professor, I was able to determine that all the errors occured
+from indexing issues. The function that generates the random array starts indexing at i=1, instead of the traditional i=0. This 
+leads to the initial index 0 being NULL. I had made the assumption that indexing starts at 0, thus all my loops were running into
+errors when trying to read and sort NULL. It was a simple fix of just adding 1 to all the places where I moved through the array. 
 
 ## Known Bugs
 
-List known bugs that you weren't able to fix (or ran out of time to fix).
+No known bugs. Everything was fixed and valgrind returns with 0 errors. 
 
 ## Reflection and Self Assessment
 
-Discuss the issues you encountered during development and testing. What
-problems did you have? What did you have to research and learn on your
-own? What kinds of errors did you get? How did you fix them?
+One of the first issues I encountered was simply just understanding the logic that we needed to apply for this project. I ended
+up meeting with other classmates to try and outline what the logic would be. I was able to be more comfortable and build a plan for how 
+I wanted to approach the project. The main things I looked up had to do with the C language itself, the pthread library, and pointers. 
+I knew what I wanted to do, I just needed to keep looking up what I could use to get to there. Understanding how pthread_create created
+and handled threads determined what variables and functions I needed. Through this process, I ran into a lot of errors, which are mentioned
+above in the 'Testing' section. 
 
-What parts of the project did you find challenging? Is there anything that
-finally "clicked" for you in the process of working on this project? How well
-did the development and testing process go for you?
+I found it challenging to work with the new pthreads library and the language of C. It was also challenging to take our discussions
+and readings in class, which taught me how to theoretically think through threads, and suddenly apply it to code, without any examples
+or other resources. I do wish I could've had more code examples shown, as I felt like we sped through information in order to talk about
+locks. 
 
 ## Sources used
 
