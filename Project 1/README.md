@@ -45,6 +45,11 @@ sorted arrays is tracked and then output to the user to compare the different ef
 
 ## Testing
 
+Before testing, I had to make sure the makefile had all the correct flags and would correctly compile the program. 
+We were to add a single line to flag pthreads library. I was able to refer to the discussion post on canvas for the
+line that needed to be added. Though, I still had to read into how to properly add it to the makefile. Once added properly, 
+the actual testing of the program could start. 
+
 The first main tests were to make sure the program compiled correctly. As I was not very familiar with C, there
 were a lot of syntax errors and minor formatting errors (ie declaring an int outside of the for loop before using it).
 After successful compilation, I ran the program to see if it would either succeed at sorting, and thus generate output, 
