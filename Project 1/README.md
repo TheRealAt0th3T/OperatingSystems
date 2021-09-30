@@ -77,3 +77,6 @@ locks.
 
 If you used any sources outside of the text book you should list them here. If you looked something up on
 stackoverflow.com and fail to cite it in this section it will be considered plagiarism and be dealt with accordingly. So be safe CITE!
+
+https://stackoverflow.com/questions/26753957/how-to-dynamically-allocateinitialize-a-pthread-array
+
