@@ -17,11 +17,11 @@ the time it took for each version to sort the array.
 
 ## Manifest
 
-Makefile - 
-mytests.c - This is the driver file, which also creates the array and the functions that time the sort. 
-lab.h - This is our header file which contains all of the function prototypes and global variables.
-lab.c - This file contains all the sorting functions. 
-runval.sh - This is a script file that runs valgrind to check for memory leaks and other errors in the project.
+* Makefile - 
+* mytests.c - This is the driver file, which also creates the array and the functions that time the sort. 
+* lab.h - This is our header file which contains all of the function prototypes and global variables.
+* lab.c - This file contains all the sorting functions. 
+* runval.sh - This is a script file that runs valgrind to check for memory leaks and other errors in the project.
 
 A listing of source files and other non-generated files and a brief (one line)
 explanation of the purpose of each file.
