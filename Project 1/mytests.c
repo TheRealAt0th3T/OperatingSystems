@@ -150,6 +150,10 @@ int main(int argc, char **argv) {
 	if (check_if_sorted(A0,n) && check_if_sorted(A1,n)) { //check_if_sorted(A0,n) && 
 		printf("For Serial Sort: Sorting %d elements took %4.2lf seconds.\n", n,  sorting_time_0/1000.0);
 		printf("For Parallel Sort: Sorting %d elements took %4.2lf seconds.\n", n,  sorting_time_1/1000.0);
+		//int i =0;
+		//for(i =1; i<= n; i++){
+		//	printf("%d\n",A1[i]);
+		//}
 	} else {
 		printf("%s: sorting failed!!!!\n", argv[0]);
 		exit(EXIT_FAILURE);
