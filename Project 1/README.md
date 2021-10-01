@@ -53,12 +53,13 @@ the actual testing of the program could start.
 The first main tests were to make sure the program compiled correctly. As I was not very familiar with C, there
 were a lot of syntax errors and minor formatting errors (ie declaring an int outside of the for loop before using it).
 After successful compilation, I ran the program to see if it would either succeed at sorting, and thus generate output, 
-or fail it. The main issue I kept having was segmentation faults. This was due to errors in how I was mallocing my variables.
-The other main error occured when testing with valgrind. I had a program that correctly sorted and printed a sorted array, but
-valgrind returned errors. After discussing with the TA and the professor, I was able to determine that all the errors occured
-from indexing issues. The function that generates the random array starts indexing at i=1, instead of the traditional i=0. This 
-leads to the initial index 0 being NULL. I had made the assumption that indexing starts at 0, thus all my loops were running into
-errors when trying to read and sort NULL. It was a simple fix of just adding 1 to all the places where I moved through the array. 
+or fail it. The main issue I kept having was segmentation faults. This was due to errors in how I was mallocing my variables, 
+and I ended up getting help in the tutoring center to fully correct the statements. The other main error occured when testing 
+with valgrind. I had a program that correctly sorted and printed a sorted array, but valgrind returned errors. After discussing 
+with the TA and the professor, I was able to determine that all the errors occured from indexing issues. The function that 
+generates the random array starts indexing at i=1, instead of the traditional i=0. This leads to the initial index 0 being NULL. 
+I had made the assumption that indexing starts at 0, thus all my loops were running into errors when trying to read and sort NULL. 
+It was a simple fix of just adding 1 to all the places where I moved through the array. 
 
 ## Known Bugs
 
@@ -78,10 +79,14 @@ and readings in class, which taught me how to theoretically think through thread
 or other resources. I do wish I could've had more code examples shown, as I felt like we sped through information in order to talk about
 locks. 
 
+Another challenge I had was keeping track of pointers. I used to use them a lot when I coded in C++, and had decided that maybe that was
+the best way to follow all the data of the threads, especially since I was using structs. I think the mallocing statements here were something
+that I struggled with. This was something I also ended up getting help from people in the tutoring center, which I discuss above in the 
+'Testing' section. 
+
 ## Sources used
 
-If you used any sources outside of the text book you should list them here. If you looked something up on
-stackoverflow.com and fail to cite it in this section it will be considered plagiarism and be dealt with accordingly. So be safe CITE!
-
 https://stackoverflow.com/questions/26753957/how-to-dynamically-allocateinitialize-a-pthread-array
-
+https://stackoverflow.com/questions/20480529/thread-struct-as-function-parameter-c/20481075
+https://www.codegrepper.com/code-examples/c/How+to+pass+a+struct+value+to+a+pthread+in+c%3F
+https://stackoverflow.com/questions/39300744/how-to-pass-a-struct-by-value-to-a-pthread
