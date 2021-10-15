@@ -36,7 +36,6 @@ struct tsb_list {
  */
 struct tsb_list * tsb_createList(int (*equals)(const void *, const void *),
     char * (*toString)(const void *), void (*freeObject)(void *), int capacity){
-        printf("constructor");
     struct tsb_list * list = (struct tsb_list*)malloc(sizeof(struct tsb_list*)+sizeof(struct node)*capacity);
     list -> list = createList(equals, toString, freeObject);
     pthread_mutex_init(&list->mutex, NULL);
@@ -56,7 +55,6 @@ struct tsb_list * tsb_createList(int (*equals)(const void *, const void *),
  * @param list a pointer to a <code>List</code>.
  */
 void tsb_freeList(struct tsb_list * list){ /* destructor */
-    printf("freeList");
     pthread_mutex_lock(&list->mutex);
     freeList(list->list);
     pthread_mutex_unlock(&list->mutex);
@@ -75,7 +73,6 @@ void tsb_freeList(struct tsb_list * list){ /* destructor */
  * @return The current size of the list.
  */
 int tsb_getSize(struct tsb_list * list){
-    printf("getsize");
     pthread_mutex_lock(&list->mutex);
     int ret = getSize(list->list);
     pthread_mutex_unlock(&list->mutex);
@@ -89,7 +86,6 @@ int tsb_getSize(struct tsb_list * list){
  * @return The macimum capacity of the list.
  */
 int tsb_getCapacity(struct tsb_list * list){
-    printf("getcapacity");
     pthread_mutex_lock(&list->mutex);
     int ret = list -> capacity;
     pthread_mutex_unlock(&list->mutex);
@@ -104,7 +100,6 @@ int tsb_getCapacity(struct tsb_list * list){
  * @return none
  */
 void tsb_setCapacity(struct tsb_list * list, int capacity){
-    printf("setCapacity");
     pthread_mutex_lock(&list->mutex);
     list -> capacity = capacity;
     pthread_mutex_unlock(&list->mutex);
@@ -117,7 +112,6 @@ void tsb_setCapacity(struct tsb_list * list, int capacity){
  * @return true if the list is empty; false otherwise.
  */
 Boolean tsb_isEmpty(struct tsb_list * list){
-    printf("isEmpty");
     pthread_mutex_lock(&list->mutex);
     Boolean ret = isEmpty(list->list);
     pthread_mutex_unlock(&list->mutex);
@@ -131,7 +125,6 @@ Boolean tsb_isEmpty(struct tsb_list * list){
  * @return true if the list is full to capacity; false otherwise.
  */
 Boolean tsb_isFull(struct tsb_list * list){
-    printf("isfull");
     pthread_mutex_lock(&list->mutex);
     //isFull(list);
     Boolean ret = FALSE;
@@ -154,7 +147,6 @@ Boolean tsb_isFull(struct tsb_list * list){
  * @param node a pointer to the node to add.
  */
 void tsb_addAtFront(struct tsb_list * list, NodePtr node){
-    printf("add at front");
     pthread_mutex_lock(&list->mutex);
     while(list->list->size >= list->capacity){ //list is at/over capacity and cant fit more in
         pthread_cond_wait(&list->listNotFull , &list->mutex);
@@ -174,7 +166,6 @@ void tsb_addAtFront(struct tsb_list * list, NodePtr node){
  * @param node a pointer to the node to add.
  */
 void tsb_addAtRear(struct tsb_list * list, NodePtr node){
-    printf("addAtRear");
     pthread_mutex_lock(&list->mutex);
     while(list->list->size >= list->capacity){ //list is at/over capacity and cant fit more in
         pthread_cond_wait(&list->listNotFull , &list->mutex);
@@ -193,7 +184,6 @@ void tsb_addAtRear(struct tsb_list * list, NodePtr node){
  * @return a pointer to the node that was removed.
  */
 NodePtr tsb_removeFront(struct tsb_list * list){
-    printf("removeFront");
     pthread_mutex_lock(&list->mutex);
     while((list->stop_requested == FALSE) && (isEmpty(list->list))){
         pthread_cond_wait(&list->listNotEmpty, &list->mutex);
@@ -213,7 +203,6 @@ NodePtr tsb_removeFront(struct tsb_list * list){
  * @return a pointer to the node that was removed.
  */
 NodePtr tsb_removeRear(struct tsb_list * list){
-    printf("removeRear");
     pthread_mutex_lock(&list->mutex);
     while((list->stop_requested == FALSE) && (list->list->size == 0)){
         pthread_cond_wait(&list->listNotEmpty, &list->mutex);
@@ -234,7 +223,6 @@ NodePtr tsb_removeRear(struct tsb_list * list){
  * @return a pointer to the node that was removed. 
  */
 NodePtr tsb_removeNode(struct tsb_list * list, NodePtr node){
-    printf("removeNode");
     pthread_mutex_lock(&list->mutex);
     while((list->stop_requested == FALSE) && (list->list->size == 0)){
         pthread_cond_wait(&list->listNotEmpty, &list->mutex);
@@ -255,7 +243,6 @@ NodePtr tsb_removeNode(struct tsb_list * list, NodePtr node){
  * with the given key is not found or the list is <code>NULL</code> or empty.
  */
 NodePtr tsb_search(struct tsb_list * list, const void *obj){
-    printf("Search");
     pthread_mutex_lock(&list->mutex);
     NodePtr ret = search(list->list, obj);
     pthread_mutex_unlock(&list->mutex);
@@ -268,7 +255,6 @@ NodePtr tsb_search(struct tsb_list * list, const void *obj){
  * @param list a pointer to a <code>List</code>.
  */
 void tsb_reverseList(struct tsb_list *  list){
-    printf("reverseList");
     pthread_mutex_lock(&list->mutex);
     reverseList(list->list);
     pthread_mutex_unlock(&list->mutex);
@@ -280,7 +266,6 @@ void tsb_reverseList(struct tsb_list *  list){
  * @param list a pointer to a <code>List</code>.
  */
 void tsb_printList(struct tsb_list * list){
-    printf("printList");
     pthread_mutex_lock(&list->mutex);
     printList(list->list);
     pthread_mutex_unlock(&list->mutex);
@@ -290,7 +275,6 @@ void tsb_printList(struct tsb_list * list){
  * Finish up the monitor by broadcasting to all waiting threads
  */
 void tsb_finishUp(struct tsb_list * list){
-    printf("fnishUp");
     pthread_mutex_lock(&list->mutex);
     list->stop_requested = TRUE;
     pthread_cond_broadcast(&list->listNotEmpty); 
