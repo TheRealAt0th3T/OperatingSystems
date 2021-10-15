@@ -36,7 +36,8 @@ struct tsb_list {
  */
 struct tsb_list * tsb_createList(int (*equals)(const void *, const void *),
     char * (*toString)(const void *), void (*freeObject)(void *), int capacity){
-    struct tsb_list * list = (struct tsb_list*)malloc(sizeof(struct tsb_list*)+sizeof(struct node)*capacity);
+    //struct tsb_list * list = (struct tsb_list*)malloc(sizeof(struct tsb_list*)+sizeof(struct node)*capacity);
+    struct tsb_list * list = (struct tsb_list*)malloc(sizeof(struct tsb_list*));
     list -> list = createList(equals, toString, freeObject);
     pthread_mutex_init(&list->mutex, NULL);
     pthread_cond_init(&list->listNotEmpty, NULL);
