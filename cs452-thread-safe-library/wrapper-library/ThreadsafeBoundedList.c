@@ -153,8 +153,8 @@ void tsb_addAtFront(struct tsb_list * list, NodePtr node){
         pthread_cond_wait(&list->listNotFull , &list->mutex);
     }
     addAtFront(list->list, node);
-    pthread_cond_signal(&list->listNotEmpty);
     pthread_mutex_unlock(&list->mutex);
+    pthread_cond_signal(&list->listNotEmpty);
 }
 
 /**
@@ -172,8 +172,8 @@ void tsb_addAtRear(struct tsb_list * list, NodePtr node){
         pthread_cond_wait(&list->listNotFull , &list->mutex);
     }
     addAtRear(list->list,node);
-    pthread_cond_signal(&list->listNotEmpty);
     pthread_mutex_unlock(&list->mutex);
+    pthread_cond_signal(&list->listNotEmpty);
 }
 
 /**
@@ -190,8 +190,8 @@ NodePtr tsb_removeFront(struct tsb_list * list){
         pthread_cond_wait(&list->listNotEmpty, &list->mutex);
     }
     NodePtr ret = removeFront(list->list);
-    pthread_cond_signal(&list->listNotFull);
     pthread_mutex_unlock(&list->mutex);
+    pthread_cond_signal(&list->listNotFull);
     return ret;
 }
 
@@ -209,8 +209,8 @@ NodePtr tsb_removeRear(struct tsb_list * list){
         pthread_cond_wait(&list->listNotEmpty, &list->mutex);
     }
     NodePtr ret = removeRear(list->list);
-    pthread_cond_signal(&list->listNotFull);
     pthread_mutex_unlock(&list->mutex);
+    pthread_cond_signal(&list->listNotFull);
     return ret;
 }
 
@@ -228,9 +228,9 @@ NodePtr tsb_removeNode(struct tsb_list * list, NodePtr node){
     while((list->stop_requested == FALSE) && (list->list->size == 0)){
         pthread_cond_wait(&list->listNotEmpty, &list->mutex);
     }
-    NodePtr ret= removeNode(list->list, node);
-    pthread_cond_signal(&list->listNotFull);
+    NodePtr ret = removeNode(list->list, node);
     pthread_mutex_unlock(&list->mutex);
+    pthread_cond_signal(&list->listNotFull);    
     return ret;
 }
 
@@ -278,8 +278,8 @@ void tsb_printList(struct tsb_list * list){
 void tsb_finishUp(struct tsb_list * list){
     pthread_mutex_lock(&list->mutex);
     list->stop_requested = TRUE;
+    pthread_mutex_unlock(&list->mutex);
     pthread_cond_broadcast(&list->listNotEmpty); 
     pthread_cond_broadcast(&list->listNotFull);
-    pthread_mutex_unlock(&list->mutex);
 }
 
