@@ -6,7 +6,7 @@
  *
  */
 #ifndef BOOGA_MAJOR
-#define BOOOGA_MAJOR 0   /* dynamic major by default */
+#define BOOGA_MAJOR 0   /* dynamic major by default */
 #endif
 
 #ifndef BOOGA_NR_DEVS
@@ -27,14 +27,11 @@ struct booga_stats {
 	long int num_write; 
 	long int num_close; 
     long int device_num; 
-    long int phraseCount1; //splitting up to avoid overflow
+    long int phraseCount0; //splitting up to avoid overflow
+	long int phraseCount1;
 	long int phraseCount2;
 	long int phraseCount3;
-	long int phraseCount4;
-    long int openCount1;
-	long int openCount2; 
-	long int openCount3;
-	long int openCount4;
+    long int openCount[4];
 	struct semaphore sem;
 };
 typedef struct booga_stats booga_stats;
@@ -67,7 +64,7 @@ static __init int booga_init(void);
 /**
  * Frees everything in struct booga_stats
  */
-static __exit  void booga_cleanup(void);
+static __exit  void booga_exit(void);
 
 /*extern booga_stats booga_Device_Stats;*/
 

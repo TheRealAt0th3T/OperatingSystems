@@ -20,8 +20,7 @@
 
 
 #define DEVICE_NAME "booga" 
-
-static int booga_major =   BOOGA_MAJOR;
+static int booga_major = BOOGA_MAJOR;
 static int booga_nr_devs = BOOGA_NR_DEVS;    /* number of bare booga devices */
 module_param(booga_major, int, 0);
 module_param(booga_nr_devs, int, 0);
@@ -84,8 +83,9 @@ static int booga_open (struct inode *inode, struct file *filp)
             return -ENODEV;
         }
 
-        //booga_device_stats -> openCount[num]++; //increment whenever device_num gets accessed
-
+        booga_device_stats -> openCount[num]++; //increment whenever device_num gets accessed
+		
+		/*
 		if(num == 0){
 			booga_device_stats -> openCount0++;
 		}else if(num == 1){
@@ -95,6 +95,7 @@ static int booga_open (struct inode *inode, struct file *filp)
 		}else if(num == 3){
 			booga_device_stats -> openCount3++;
 		}
+		*/
 
 		filp->f_op = &booga_fops;
 
@@ -121,7 +122,7 @@ static int booga_release (struct inode *inode, struct file *filp)
         }	
 		booga_device_stats->num_close++;
 		up(&booga_device_stats->sem);
-        prink(KERN_INFO "Booga: Device was closed successfully\n")
+        //printk(KERN_INFO "Booga: Device was closed successfully\n");
 		module_put(THIS_MODULE);
 		return 0;
 }
@@ -138,7 +139,7 @@ static ssize_t booga_read (struct file *filp, char *buf, size_t count, loff_t *f
         char* phrase_randIndex = "";
         char* substr = "";
 
-        int i;
+        int i = 0;
         int j;
 
 		printk("<1>booga_read invoked.\n");
@@ -184,7 +185,7 @@ static ssize_t booga_read (struct file *filp, char *buf, size_t count, loff_t *f
         booga_device_stats -> num_read += count; //bytes read in
         //booga_device_stats->num_read++;
 		up(&booga_device_stats->sem);
-		return 0;
+		return count;
 }
 
 static ssize_t booga_write (struct file *filp, const char *buf, size_t count , loff_t *f_pos)
@@ -222,10 +223,20 @@ static void init_booga_device_stats(void)
 		booga_device_stats->num_open=0;
 		booga_device_stats->num_close=0;
 
-        for(i = 0; i<4; i++){
+		for(i = 0; i<4; i++){
             booga_device_stats -> openCount[i] = 0;
-            booga_device_stats -> phraseCount[i] = 0;
+            //booga_device_stats -> phraseCount[i] = 0;
         }
+		/*
+        booga_device_stats -> openCount0 = 0;         
+		booga_device_stats -> openCount1 = 0;         
+		booga_device_stats -> openCount2 = 0;         
+		booga_device_stats -> openCount3 = 0;  
+		*/
+		booga_device_stats -> phraseCount0 = 0;         
+		booga_device_stats -> phraseCount1 = 0;         		
+		booga_device_stats -> phraseCount2 = 0;         
+		booga_device_stats -> phraseCount3 = 0;
 
 		sema_init(&booga_device_stats->sem, 1);
 }
@@ -234,20 +245,29 @@ static int booga_proc_show(struct seq_file *m, void *v)
 {
         int i = 0; 
         
-		seq_printf(m, "open = %ld times\n", booga_device_stats->num_open);
-		seq_printf(m, "close = %ld times\n", booga_device_stats->num_close);
-		seq_printf(m, "read = %ld times\n", booga_device_stats->num_read);
-		seq_printf(m, "write = %ld times\n", booga_device_stats->num_write);
+		//seq_printf(m, "open = %ld times\n", booga_device_stats->num_open);
+		//seq_printf(m, "close = %ld times\n", booga_device_stats->num_close);
+		seq_printf(m, "bytes read = %ld \n", booga_device_stats->num_read);
+		seq_printf(m, "bytes written = %ld \n", booga_device_stats->num_write);
 
-        seq_printf(m, "number of opens:\n");
+		seq_printf(m, "number of opens:\n");
         for(i=0; i<4;i++){
             seq_printf(m, " /dev/booga%d = %ld times\n", i, booga_device_stats -> openCount[i]);
         }
+		/*
+        seq_printf(m, "number of opens:\n");
+        seq_printf(m, " /dev/booga0 = %ld times\n", booga_device_stats -> openCount0);
+        seq_printf(m, " /dev/booga1 = %ld times\n", booga_device_stats -> openCount1);
+        seq_printf(m, " /dev/booga2 = %ld times\n", booga_device_stats -> openCount2);
+        seq_printf(m, " /dev/booga3 = %ld times\n", booga_device_stats -> openCount3);
+		*/
 
         seq_printf(m, "strings output:\n");
-        for(i =0; i<4; i++){
-            seq_printf(m, " %s = %ld times\n", phrases[i], booga_device_stats -> phraseCount[i]);
-        }
+        seq_printf(m, " booga! booga! = %ld times\n", booga_device_stats -> phraseCount0);
+        seq_printf(m, " googoo! gaagaa! = %ld times\n", booga_device_stats -> phraseCount1);
+		seq_printf(m, " wooga! wooga! = %ld times\n", booga_device_stats -> phraseCount3);
+        seq_printf(m, " neka! maka! = %ld times\n", booga_device_stats -> phraseCount2);
+        
         
 		return 0;
 }
@@ -299,7 +319,7 @@ fail_malloc:
 
 
 
-static __exit  void booga_cleanup(void)
+static __exit  void booga_exit(void)
 {
 		remove_proc_entry("driver/booga", NULL /* parent dir */);
 		kfree(booga_device_stats);
@@ -309,6 +329,6 @@ static __exit  void booga_cleanup(void)
 
 
 module_init(booga_init);
-module_exit(booga_cleanup);
+module_exit(booga_exit);
 
 /* vim: set ts=4: */
