@@ -47,27 +47,27 @@ static int booga_open (struct inode *inode, struct file *filp);
 /**
  * Releases device from read or write mode
  */
-static int example_release (struct inode *inode, struct file *filp);
+static int booga_release (struct inode *inode, struct file *filp);
 
 /**
  * Read the device
  */
-static ssize_t example_read (struct file *filp, char *buf, size_t count, loff_t *f_pos);
+static ssize_t booga_read (struct file *filp, char *buf, size_t count, loff_t *f_pos);
 
 /**
  * Write to the device
  */
-static ssize_t example_write (struct file *filp, const char *buf, size_t count , loff_t *f_pos);
+static ssize_t booga_write (struct file *filp, const char *buf, size_t count , loff_t *f_pos);
 
 /**
  * Initializes everything in struct booga_stats
  */
-static __init int example_init(void);
+static __init int booga_init(void);
 
 /**
  * Frees everything in struct booga_stats
  */
-static __exit  void example_cleanup(void);
+static __exit  void booga_cleanup(void);
 
 /*extern booga_stats booga_Device_Stats;*/
 
