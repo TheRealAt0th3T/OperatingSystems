@@ -1,183 +1,112 @@
-# Overview
 
-In this assignment, we will write a simple character driver called booga. Note that, you will only be able to test this assignment on a Linux machine where you have root privilege. A VMware-based CentOS 7 (64 bit) VM image is provided. Later on we will refer to this VM as the cs453 VM - this course used to be called cs453, now it's called cs452, the VM was created back then. (username/password: cs453/cs453, run commands with sudo to gain root privilege). You can also download a CentOS 7 (64 bit) and install it by yourself, and you can also use VirtualBox.
+## Project 3/Device Driver
 
-## Important notes
+* Author: Amara Tariq 
+* Class: CS452/CS552 [Operating Systems] Section #001
 
-You MUST build against the kernel version (3.10.0-957.el7.x86_64) installed on the cs453 VM. You will need to use root in this project is to load and unload the drivers.
+## Overview
 
-# Specification
+Concisely explain what the program does. If this exceeds a couple of
+sentences, you're going too far. Generally you should be pulling this
+right from the project specification. We don't want you to just cut and
+paste, but paraphrase what is stated in the project specification.
 
-## The main driver
+For this program, we wrote a device driver named booga. This driver supports open, read, write, and close operations, and returns a partial stream of one of four phrases, which is randomly chosen. 
 
-The booga driver is a simple character driver that supports the open, read and write and close operations. The driver supports four minor numbers: 0, 1, 2, and 3. The device files are: /dev/booga0, /dev/booga1, /dev/booga2, /dev/booga3. We will also create a link from /dev/booga to /dev/booga0, so that acts as the default device when someone accesses /dev/booga. On reading from /dev/booga0, /dev/booga1, /dev/booga2 and /dev/booga3 the driver gives a stream of one of the following phrases:
+This was a simple driver was kernel based. In order to run it, we had to use Vmware-vased CentOS. 
 
-- booga! booga!
-- googoo! gaagaa!
-- neka! maka!
-- wooga! wooga!
+## Manifest
 
-Note that the driver may only output part of a phrase if the number of bytes requested by the user is not a multiple of the length of the chosen phrase.  Also each new phrase is separated from the previous one by a single space.
+A listing of source files and other non-generated files and a brief (one line)
+explanation of the purpose of each file.
 
-The driver is unpredictable as to what phrase it says. In order to simulate this behavior, we will use a random number generator. However, we cannot call any standard C library functions in the kernel (e.g. random()).  Linux actually has a device driver that generates strong random numbers by observing hardware noise, interrupts and other system activity. In the user space, the random device driver can be accessed via /dev/random. In your device driver code, you will need to include the header file <linux/random.h> and the function that you will call has the following prototype.
+* Makefile - This builds the entire project, creating executables, and also cleans, all in order to run the progam. 
+* booga.c - This is our main file containing all the functions such as open, read, write, exit, etc. 
+* booga.h - This is our header file which includes function prototypes, which when added, allow files to be able ot call functions listed here. 
+* booga_load - This file loads the drivers. 
+* booga_unload - This file unloads the drivers, removing any remaining content/nodes. 
+* test-booga.c - This is our actual test file, which the test scripts call. 
+* booga-test1.sh - This is our first test script which tests the regular functionalities of our driver. 
+* booga-test2.sh - This is our second test script which tests if the driver is thread-safe. 
 
-```c
-extern void get_random_bytes(void *buf, int nbytes);
-```
+## Building the project
 
-Here is a sample code on how to use the above function.
+This section should tell the user how to build your code.  If you are
+delivering a library, where does it need to be installed or how do you use
+it? Is this an executable, if so how can a user get up to speed as fast
+as possible.
 
-```c
-char randval;
-get_random_bytes(&randval, 1);
-choice = (randval & 0x7F) % 4; /* bitwise AND is to guarantee positive numbers */
-```
+First off, make sure you have a VM installed with CentOS 7 (64 bit) installed. This program will ONLY run on this. Also make sure you have root permissions and can run sudo commands. 
 
-On writing to booga devices /dev/booga0, /dev/booga1, /dev/booga2, the booga device driver works like  /dev/null (so it pretends to write the buffer but doesn't actually write to any device). However if a process tries to write to /dev/booga3, it suffers from sudden death! You cannot call the system call kill() from inside the kernel space so you will have to figure out how to terminate a process from inside the kernel. Search the function kill_pid() in the kernel sources for ideas. Use the SIGTERM signal instead of SIGKILL for terminating the process.
+Clone the repository onto the VM and run the following command to compile: <br>
+``` make ```
 
-## Get booga stats from /proc
+run this next command to prep the device drier and load:
+``` sudo ./booga_load ```
 
-Create /proc entries for the booga driver. It reports on the number of bytes read/written since the driver was loaded, number of times it was opened from each supported minor number, and the number of times each of the four strings was selected. So if we output 1000 characters with the string “booga! booga!” in it, then we count that as one more instance of the phrase for this purpose. If the driver outputs an incomplete phrase, we will still count it as another instance of that phrase being selected. Here is a sample output.
+The following command will show you how much space your driver is using: 
+``` /sbin/lsmod ```
 
-```console
-[user@localhost booga]# cat /proc/driver/booga
-bytes read = 300
-bytes written = 200
-number of opens:
-  /dev/booga0 = 4 times
-  /dev/booga1 = 0 times
-  /dev/booga2 = 1 times
-  /dev/booga3 = 1 times
-strings output:
-  booga! booga!  = 0 times
-  googoo! gaagaa!  = 1 times
-  neka! maka!  = 1 times
-  wooga! wooga!    = 1 times
-```
+this command will read/write a specific buffer size and minor number:
+``` ./test-booga <minor number> <buffer size> <read or write> ```
 
-## Thread-safety
+The following command will print to screen what information the driver has written to it:
+``` cat /proc/driver/booga ```
 
-Protect the updating of structure used to track the statistics using semaphores. Refer to example driver code on the course page for an example on how to use semaphores in Linux kernel.
+To run the test script to check functionality:
+``` sudo ./booga-test1.sh ```
 
-## Notes
+To run the test script to check thread-safety:
+``` sudo ./booga-test2.sh ```
 
-Here are the prototypes of the functions that your driver would need to implement - in booga.c and booga.h.
+## Features and usage
 
-```c
-static int booga_open (struct inode *inode, struct file *filp);
-static int booga_release (struct inode *inode, struct file *filp);
-static ssize_t booga_read (struct file *filp, char *buf, size_t count, loff_t *f_pos);
-static ssize_t booga_write (struct file *filp, const char *buf, size_t count, loff_t *f_pos);
-static int __init booga_init(void);
-static void __exit booga_exit(void);
-```
+Summarize the main features of your program. It is also appropriate to
+instruct the user how to use your program.
 
-Remember that you need to use the **__copy_to_user(...)** kernel function to copy the data to user space. 
+This program features a device driver. The driver is able to open, read, write, and close. It has 4 minor numbers, 0-3. 
 
-Note that the kernel print messages will not show on the screen. The messages are, however, logged in the file /var/log/messages. You can open another terminal and watch the output to the system messages file with the command:
+The driver, upon reading one of the files (/dev/booga# ranging 0-3), will return a partial stream of a randomly chosen phrase from the 4 phrases provided. The partiality of it comes from the number of bytes the user requested to be read. 
 
-```console
-sudo tail -f /var/log/messages
-```
+When writing to devices 0-2, the driver works like /dev/null, pretending to write to a buffer but not really writing. This is because we are simple simulating a device driver. If the driver attempts to write to /dev/booga3, it will immediately be terminated. 
 
-In some versions, you may not have this file setup. Alternatively,  you can use the command **sudo dmesg --follow** to watch for kernel log messages.
+## Testing
 
-We have provided a test program called test-booga.c. We will use this program to test the driver. While testing your program, the following situations may arise:
+This section should detail how you tested your code. Simply stating "I ran
+it a few times and it seems to work" is not sufficient. Your testing needs to
+be detailed here.
 
-- The system hangs and you have to hit the reset button
-- The system spontaneously reboots. Oops!
-- The kernel prints an oops message (a milder version of the infamous General Protection Fault). You will get a stack trace with it that should help in narrowing down the cause
+One of the main issues I had regarding running this program was that the only computer I own and code on is a Mac M1. This computers architecture doesn't allow VMware to run on it at all. Due to this, I had to blindly code and get the base of my code completed, and then have a classmate meet up with me and let me run my code and try and debug it on their system. 
 
-Once you run make, your compiler will compile test-booga.c into a binary called test-booga. Two scripts are provided for testing - they will call test-booga. Run booga-test1.sh to test regular functionalities of your driver, and run booga-test2.sh to test if your driver is thread-safe or not.
+Besides the typical spelling issues most coders have, I had two major concerns. One was the size of the moduel being off when running the command ``` cat /proc/driver/booga ```. This I later learned from the TA was quite normal, since the device would taken up differing space depending on how one codes it, the system its being run on, etc. 
 
-Here is a sample session with the booga driver. Note that the characters returned by the driver do not contain any newline characters. The output shown below was reformatted slightly for this document.
+The other major issue I had was with counting the amount of times phrases were printed. I believe this was all due to the 'long' that it was declared as. The error would occur if I ran the program more than once, the count would then randomly get negative, and not just a simple -1, it would go to large negative numbers. This reminded me of how in ECE we had learned about unsigned and signed ints, and it lead me to believing that was what was going on. In order to correct this, I split up the inital array of values I had (based on hving the minor number as the indexing) to individual variables.
 
-```console
-[user@localhost]$ make
-make -C /lib/modules/`uname -r`/build M=`pwd` modules
-make[1]: Entering directory '/usr/src/kernels/4.14.11-200.fc26.x86_64'
- CC [M]  /home/user/Documents/classes/cs453/github/CS453/projects/p5/grader/solutions/user/booga.o
- Building modules, stage 2.
- MODPOST 1 modules
- CC      /home/user/Documents/classes/cs453/github/CS453/projects/p5/grader/solutions/user/booga.mod.o
- LD [M]  /home/user/Documents/classes/cs453/github/CS453/projects/p5/grader/solutions/user/booga.ko
-make[1]: Leaving directory '/usr/src/kernels/4.14.11-200.fc26.x86_64'
-cc    -c -o test-booga.o test-booga.c
-cc  -o test-booga test-booga.o
+I also, during that testing, had thought that the openCount[] array I had would also run into the same issues, so I also ended up splitting that up. Though, the next error I ran into caused me to revert it back to the array. The error I had was that when I ran the test scripts, it would print zeros for the count. I thought having split up the opencount might have messed something up, so I reverted the changes. Later I realized I simply forgot to change the return statement from returning 0 to returning count. After that my program was fully functioning. 
 
-[user@localhost]$ ls
-booga.c   booga_load   booga.o         booga_unload   Module.symvers  test-booga.c
-booga.h   booga.mod.c  booga-test1.sh  Makefile       README.md       test-booga.o
-booga.ko  booga.mod.o  booga-test2.sh  modules.order  test-booga
-[user@localhost ]$
+## Known Bugs
 
-[user@localhost]$ sudo ./booga_load       
-[sudo] password for user:  
+No known bugs. 
 
-[user@localhost]$ /sbin/lsmod  
-Module                  Size  Used by
-booga                  16384  0
-bluetooth             593920  0
-ecdh_generic           24576  1 bluetooth
-rfkill                 28672  2 bluetooth
-ipt_MASQUERADE         16384  1
-nf_nat_masquerade_ipv4    16384  1 ipt_MASQUERADE
-. . .
+## Reflection and Self Assessment
 
-[user@localhost]$ ./test-booga 0 100 read
-Read returned 100 characters
-wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! wooga! Wo
+Discuss the issues you encountered during development and testing. What
+problems did you have? What did you have to research and learn on your
+own? What kinds of errors did you get? How did you fix them?
 
-[user@localhost]$ ./test-booga 0 100 read
-Read returned 100 characters
-googoo! gaga! googoo! gaga! googoo! gaga! googoo! gaga! googoo! gaga! googoo! gaga! googoo! gaga! go
+What parts of the project did you find challenging? Is there anything that
+finally "clicked" for you in the process of working on this project? How well
+did the development and testing process go for you?
 
-[user@localhost]$ ./test-booga 0 100 write
-Attempting to write to booga device
-Wrote 100 bytes.
+The thing I felt was most challenging was being unable to run what was needed on my Mac. It gets frustrating not having the tools you need to fully check if your program is working or not. 
 
-[user@localhost]$ ./test-booga 3 100 write  
-Attempting to write to booga device
-Terminated
+I was very lucky to know others in the course and have access to being able to use their machines in order to run and test my program. 
 
-[user@localhost]$ cat /proc/driver/booga
-bytes read = 200  
-bytes written = 100  
-number of opens:
- /dev/simple0 = 3 times
- /dev/simple1 = 0 times
- /dev/simple2 = 0 times
- /dev/simple3 = 1 times
-strings output:
- booga! booga!  = 0 times
- googoo! gaga!  = 1 times
- wooga! wooga!  = 1 times
- neka! maka!    = 0 times
+Coding wise, it was just difficult because it was coding blindly, but luckily the example code did provide a good guide and I was able to really understand what was going on.
 
-[user@localhost]$ sudo ./booga_unload 
-```
+The only other big issue I recall having was when running the test script, my count was off by one, but after talking to some people in the class, I found out that that was how it was supposed to be. So the time I spent trying to understand why it was off by one wasn't really needed. This is a place I wish I would've immediately emailed the professor or asked because I spent a lot of time trying to figure out where that was occuring. 
 
-## Submission
+## Sources used
 
-Due: 23:59pm, November 11th, 2021. 10% of penalty for late submission within 48 hours; 20% of penalty after the 48 hours window.
-
-## Grading Rubric (Undergraduate and Graduate)
-
-- [10 pts] Compiling
-  - Each compiler warning will result in a 3 point deduction.
-  - You are not allowed to suppress warnings
-
-- [70 pts] Main driver:
-  - Supports read properly:    30/30
-  - Use of /dev/random:             10/10
-  - Writing acts like /dev/null:    10/10
-  - Kill process writing to booga3: 10/10
-  - Proper use of semaphores:       10/10
-
-- [10 pts] Get Booga Stats from /proc
-  - Report on number bytes written/read: 5/5
-  - Report on strings :                  5/5
-
-- [10 pts] Documentation:
-  - README.md file (replace this current README.md with a new one using the template on the course page)
-
+https://man7.org/linux/man-pages/man7/signal.7.html
+https://www.ibm.com/docs/en/linux-on-systems?topic=hdaa-names-nodes-numbers
