@@ -108,5 +108,5 @@ The only other big issue I recall having was when running the test script, my co
 
 ## Sources used
 
-https://man7.org/linux/man-pages/man7/signal.7.html
-https://www.ibm.com/docs/en/linux-on-systems?topic=hdaa-names-nodes-numbers
+https://man7.org/linux/man-pages/man7/signal.7.html <br>
+https://www.ibm.com/docs/en/linux-on-systems?topic=hdaa-names-nodes-numbers <br>
