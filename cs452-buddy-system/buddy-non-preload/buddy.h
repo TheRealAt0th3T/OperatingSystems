@@ -68,4 +68,29 @@ void buddy_free(void *ptr);
  */
 void printBuddyLists(void);
 
+/**
+ * @brief Converts user inputted size to a power of 2
+ * ie input = 511 this would help round it up to 512 which is 2^9
+ * 
+ * @param size the inputted size of mem block 
+ * @return new block size
+ */
+size_t powerUpSize(size_t size);
+
+/**
+ * @brief Getting kval from size 
+ * size = 2^kval
+ * 
+ * @param blockSize 
+ * @return kval 
+ */
+int getKval(size_t blockSize);
+
+/**
+*
+* Using our kval, we can "map" to a block within pool
+* @return blockNeeded
+*/
+int getBlockFromPool(int kval)
+
 #endif /*BUDDY_H_*/
