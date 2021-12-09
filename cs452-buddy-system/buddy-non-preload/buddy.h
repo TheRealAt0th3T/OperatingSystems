@@ -91,6 +91,6 @@ int getKval(size_t blockSize);
 * Using our kval, we can "map" to a block within pool
 * @return blockNeeded
 */
-int getBlockFromPool(int kval)
+int getBlockFromPool(int kval);
 
 #endif /*BUDDY_H_*/

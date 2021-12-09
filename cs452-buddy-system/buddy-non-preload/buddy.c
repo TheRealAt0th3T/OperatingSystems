@@ -24,8 +24,8 @@ const int UNUSED = -1; /* useful for header nodes */
 
 /* supports memory upto 2^(MAX_KVAL-1) (or 64 GB) in size */
 #define  MAX_KVAL  37 //64gb
-#define  MIN_KVAL  10  //
-#define  KVAL      29  //
+#define  MIN_KVAL  1  
+#define  KVAL      29 //512MB
 #define  NO_MEM    NULL
 
 /* default memory allocation is 512MB */
@@ -42,14 +42,19 @@ struct pool {
 } pool;
 
 
-
+/**
+ * Initialize the buddy system to the given size 
+ * (rounded up to the next power of two)
+ *
+ * @return  TRUE if successful, ENOMEM otherwise.
+ */
 int buddy_init(size_t size){ 
     bHeader *bh; //pointer to the header
 	int i = 0;
 
 	if(!initialized){
-		size = pow(2, ceil(log(size)/log(2))); //rounds up request to the next power of 2
-		pool.lgsize = log2(size); //kval (size = 2^kval)
+		size = powerUpSize(size); //rounds up request to the next power of 2
+		pool.lgsize = getKval(size); //calculating kval from size (size = 2^kval)
 
 		if (pool.lgsize > MAX_KVAL ) { //if kval larger than MAX_KVAL (37)
 			size = 1UL << MAX_KVAL; //resize 
@@ -63,23 +68,7 @@ int buddy_init(size_t size){
 
 		pool.start = sbrk(size);
 
-		/*
-		if(size < 1 && size != 0){
-			return ENOMEM;
-		}
-
-		for(i = 0; i< MAX_KVAL; i++){
-			pool.avail[i].tag = UNUSED;
-			pool.avail[i].kval = i;
-			pool.avail[i].next = &pool.avail[i];
-			pool.avail[i].prev = &pool.avail[i];
-		}
-
-		pool.avail[i].next = pool.start;
-		pool.avail[i].prev = pool.start;
-		*/
-
-		if(pool.size < 0){ //allocation error
+		if(pool.size < 0){ //allocation error ----------double check
 			return -ENOMEM; 
 		}
 
@@ -96,7 +85,7 @@ int buddy_init(size_t size){
 		pool.avail[i].next = pool.start;
 		pool.avail[i].prev = pool.start;
 
-		// 
+		//header
 		bh = pool.avail[i].next; 
 		bh->tag = FREE;
 		bh->kval = i;
@@ -109,22 +98,23 @@ int buddy_init(size_t size){
 	return TRUE;
 }
 
+
+
 /**
- * @brief Allocating dynamic memory. 
- * If size not power of 2, will roundup.
- * 
- * @param size amount of mem for new block
- * @return void* pointer to new mem block
+ * Allocate dynamic memory. Rounds up the requested size to next power of two.
+ * Returns a pointer that should be type casted as needed.
+ * @param size  The amount of memory requested
+ * @return Pointer to new block of memory of the specified size.
  */
 void *buddy_malloc(size_t size){
 	int i = 0; // for loops
 
-	if(size == 0){ //if size =0, break out and do nothing
+	if(size == 0){ //if size = 0, break out and do nothing
 		return NULL;
 	}
 
-	if(!initialized){	
-		buddy_init(1 << KVAL); //---------------why the need to resize
+	if(!initialized){	// we want to initialize before doing anything else
+		buddy_init(1 << KVAL); 
 	}
 
 	bHeader *h1 = NULL;
@@ -140,7 +130,7 @@ void *buddy_malloc(size_t size){
 
 	i = getBlockFromPool(kval);	//getting block from the list/pool (dictated by kval)
 	
-	if(i != -1){ //if we found the block --------------------why not if unused
+	if(i != -1){ //(-1=tag UNUSED)if we found the block 
 		h1 = pool.avail[i].next; //pointing at pool.start
 		
 		//setting new blocks header information
@@ -159,7 +149,7 @@ void *buddy_malloc(size_t size){
 			h2->next = &pool.avail[i];
 			h2->prev = &pool.avail[i];
 
-			pool.avail[i].tag = FREE;		//-------why no kval here
+			pool.avail[i].tag = FREE;
 			pool.avail[i].next = h2;
 			pool.avail[i].prev = h2;
 		}
@@ -175,43 +165,49 @@ void *buddy_malloc(size_t size){
 
 
 /**
- * @brief allocate and clear mem. 
- * wrapper func to call buddy_malloc()
- * 
- * @param nmemb members needed
- * @param size each member size
- * @return void* to the start of the array of members
+ * Allocate and clear memory to all zeroes. Wrapper function that just calles buddy_malloc.
+ *
+ * @param nmemb  The number of members needed
+ * @param size   Size of each member
+ * @return Pointer to start of the array of members
  */
-void *buddy_calloc(size_t nmemb, size_t size){
-	
-	size_t nPower = powerUpSize(nmemb * size);
-	void *newMemBlock = buddy_malloc(nPower);
+void *buddy_calloc(size_t nmemb, size_t size){ 
+    size_t alloc_size = nmemb * size;
+    void *getP = buddy_malloc(alloc_size);
 
-	int i = 0; 
-	while(i < nPower){
-		newMemBlock = (void *)'0'; //clear mem and set to '0'
-		newMemBlock = 1 + (char *)newMemBlock;
-		i++;
-	}
-	return newMemBlock;
+    if (getP == NULL){
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    void *retP = memset(getP, 0, alloc_size);
+    return retP;
 }
 
 /**
- * @brief Changes size of mem block. 
- * if ptr = null, following is essentially buddy_malloc(size),
- * if size = 0, then essetially is buddy_free(ptr).
- * 
- * @param ptr to existing mem block
- * @param size new mem block size
- * @return void* ptr to resized block
+ * buddy_realloc() changes the size of the memory block pointed to by ptr to size bytes. 
+ * The contents will be unchanged to the minimum of the old and new sizes; newly 
+ * allocated memory will be uninitialized. If ptr is NULL, the call is equivalent 
+ * to buddy_malloc(size); if size is equal to zero, the call is equivalent to buddy_free(ptr). 
+ * Unless ptr is NULL, it must have been returned by an earlier call to buddy_malloc(), 
+ * buddy_calloc() or buddy_realloc().
+ *
+ * @param  ptr Pointer to existing memory block
+ * @param  size The new size of the memory block
+ * @return The pointer to the resized block
  */
 void *buddy_realloc(void *ptr, size_t size){ //if ptr = NULL, call equivalent to this
+	//check initialization
+	if(!initialized){
+		buddy_init(size);
+	}
+
 	if (ptr == NULL){
-		return malloc(size);
+		buddy_malloc(size);
 	}
 	
 	if(size == 0){	 //if size = 0, call equivalent to this
-		return free(ptr); //--------------------type? ??? ?   ? ?  
+		buddy_free((void *)ptr); //--------------------type? ??? ?   ? ?  
 	}
 
 	bHeader *h1 = (bHeader *)ptr -1; 
@@ -222,21 +218,22 @@ void *buddy_realloc(void *ptr, size_t size){ //if ptr = NULL, call equivalent to
 
 	void *ret = buddy_malloc(size);
 
-	if(ret){	// ------------------------------?? ? ?  ? ??    ? ? ? ??
+	if(ret){
 		memcpy(ret, ptr, sizeof(bHeader));
-		free(ptr);
+		buddy_free(ptr);
 	}
-
-	return ret;
+	return ptr;
 }
 
 /**
- * @brief frees mem space ptr is pointing at, which was returned by all alloc()'s.
- * If free has been called, undef occrus, if NULL, no op is done.  
- * 
- * @param ptr to called on mem block 
+ * buddy_free() frees the memory space pointed to by ptr, which must have been returned 
+ * by a previous call to buddy_malloc(), buddy_calloc() or buddy_realloc(). Otherwise, 
+ * or if buddy_free(ptr) has already been called before, undefined behaviour occurs. If 
+ * ptr is NULL, no operation is performed. 
+ * @param ptr Pointer to memory block to be freed
  */
 void buddy_free(void *ptr){
+	
 	if(ptr == NULL){	//if ptr is null, no op is done
 		return; 
 	}
@@ -248,8 +245,7 @@ void buddy_free(void *ptr){
 	bHeader *h2 = (bHeader *)(buddyAddy);
 
 	//combining buddies
-	//-----------------------------? C? ?? ? ? DISCREPENSIES WITH NOTES AND WHILE LOOP-----------------------
-	// while k not max || h2 tag is not reserved || tag h2 is free but not the right kval
+	// while k not max || h2 tag not reserved || check h2 is free but not right kval
 	while ( !(( kval == pool.lgsize ) || ( h2->tag == RESERVED ) || (( h2->tag == FREE) && ( h2->kval != kval)))) {
 		h2->prev->next = h2->next;
 		h2->next->prev = h2->prev;
@@ -270,22 +266,22 @@ void buddy_free(void *ptr){
 
 
 /**
- * @brief prints list of available blocks in buddy sys
- * 
+ * Prints out all the lists of available blocks in the Buddy system.
  */
 void printBuddyLists(){
 	
 	int blocksFree = 0; 
 	int i = 0; //going to be our kval
+
 	while(i <= pool.lgsize){ 
 		printf("List %d head = %p --> [tag=%d,kval=%d,address=%p] ", i , &pool.avail[i], pool.avail[i].tag, pool.avail[i].kval, pool.avail[i].next);
 		
-		bHeader* h1 = &pool.avail[i];
+		bHeader* h = &pool.avail[i];
 
-		while (h1->next != &pool.avail[i]) // while not at end of pool
+		while (h->next != &pool.avail[i]) // while not at end of pool
 		{
-			printf("-->%p", h1);
-			h1 = h1->next;
+			printf("-->%p", h);
+			h = h->next;
 		}
 
 		printf("--> <null>\n");
@@ -319,14 +315,18 @@ size_t powerUpSize(size_t size){
 }
 
 /**
- * @brief Getting kval from size 
- * size = 2^kval
- * 
+ * @brief Getting kval from size (size = 2^kval)
  * @param blockSize 
  * @return kval 
  */
 int getKval(size_t blockSize){
-	int kval = log2(blockSize);
+	int kval = 0;
+	blockSize--;
+
+	while (blockSize > 0) {
+		blockSize >>= 1;
+		kval++;
+	}
 	return kval; 
 }
 
@@ -339,7 +339,7 @@ int getBlockFromPool(int kval){
 	int bNeed = kval;
 
 	while(bNeed <= pool.lgsize){
-		if(pool.avail[bNeed].next != &pool.avail[bNeed]){	//--------------------What is this 
+		if(pool.avail[bNeed].next != &pool.avail[bNeed]){
 			return bNeed;
 		}
 		bNeed++;
@@ -347,3 +347,15 @@ int getBlockFromPool(int kval){
 	return -1; 
 }
 
+/**
+ * @brief Get Buddy
+ * @param kval 
+ * @param header 
+ * @return void* buddy
+ */
+void* getBuddy(int kval, void* header){
+	long k = (long)kval;
+	long h = (long)header;
+
+	return ((void*) (((1 << k) ^ (h - (long)pool.start)) + (long)pool.start));
+}
