@@ -93,4 +93,12 @@ int getKval(size_t blockSize);
 */
 int getBlockFromPool(int kval);
 
+/**
+ * @brief Get Buddy
+ * @param kval 
+ * @param header 
+ * @return void* buddy
+ */
+void* getBuddy(int kval, void* header);
+
 #endif /*BUDDY_H_*/

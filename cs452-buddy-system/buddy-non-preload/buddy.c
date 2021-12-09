@@ -68,34 +68,34 @@ int buddy_init(size_t size){
 
 		pool.start = sbrk(size);
 
-		if(pool.size < 0){ //allocation error ----------double check
+		if(pool.size < 0){ //allocation error
 			return -ENOMEM; 
 		}
 
 		for(i = 0; i < pool.lgsize; i++){
-			pool.avail[i].tag = RESERVED;
-			pool.avail[i].kval = i;
 			pool.avail[i].next = &pool.avail[i];
 			pool.avail[i].prev = &pool.avail[i];
+			pool.avail[i].tag = RESERVED;
+			pool.avail[i].kval = i;
 		}
 
 		//last iteration of i
-		pool.avail[i].tag = FREE;
-		pool.avail[i].kval = pool.lgsize;
 		pool.avail[i].next = pool.start;
 		pool.avail[i].prev = pool.start;
+		pool.avail[i].tag = FREE;
+		pool.avail[i].kval = pool.lgsize;
+
 
 		//header
 		bh = pool.avail[i].next; 
-		bh->tag = FREE;
-		bh->kval = i;
 		bh->next = &pool.avail[i];
 		bh->prev = &pool.avail[i];
+		bh->tag = FREE;
+		bh->kval = i;
 
 	}
-	
 	initialized = TRUE; //now program knows buddy_init has already been called and performed
-	return TRUE;
+	return initialized;
 }
 
 
@@ -108,6 +108,7 @@ int buddy_init(size_t size){
  */
 void *buddy_malloc(size_t size){
 	int i = 0; // for loops
+	int kval = 0; 
 
 	if(size == 0){ //if size = 0, break out and do nothing
 		return NULL;
@@ -120,46 +121,47 @@ void *buddy_malloc(size_t size){
 	bHeader *h1 = NULL;
 	bHeader *h2 = NULL;
 
-	size_t totalBlockSize = powerUpSize(size + sizeof(bHeader)); //need to include size of header in each block & powerUp
-	int kval = getKval(totalBlockSize);
+	size_t totalBlockSize = size + sizeof(bHeader); //need to include size of header in each block 
+	totalBlockSize = powerUpSize(totalBlockSize);
+	kval = getKval(totalBlockSize);
 
 	if(kval > pool.lgsize){ //checking if kval within bounds
 		errno = ENOMEM;
-		return (void*) NO_MEM;
+		return NULL;
+		//return (void*)NO_MEM;
 	}
 
 	i = getBlockFromPool(kval);	//getting block from the list/pool (dictated by kval)
 	
-	if(i != -1){ //(-1=tag UNUSED)if we found the block 
+	if(i != UNUSED){ //(-1=tag UNUSED)if we found the block 
 		h1 = pool.avail[i].next; //pointing at pool.start
 		
 		//setting new blocks header information
-		h1->tag = RESERVED;
-		h1->kval = kval;
 		pool.avail[i].next = h1->next;
 		h1->next->prev = &pool.avail[i];
-
+		h1->tag = RESERVED;
+		h1->kval = kval;
+		
 		while(i != kval){
 			i--; 
 			
-			h2 = (bHeader*)(long)h1 + (1<<i); 
+			long headerAddy = (long) h1 + (1<< i);
+			h2 = (bHeader*)headerAddy; 
 
-			h2->tag = FREE;
-			h2->kval = i;
 			h2->next = &pool.avail[i];
 			h2->prev = &pool.avail[i];
-
-			pool.avail[i].tag = FREE;
+			h2->tag = FREE;
+			h2->kval = i;
+			
 			pool.avail[i].next = h2;
 			pool.avail[i].prev = h2;
+			pool.avail[i].tag = FREE;
 		}
 	}else{	//no block space found
 		errno = ENOMEM;
-		return (void*) NO_MEM;
+		return NULL;
 	}
-	
 	h1++; //incrementing pointer
-
 	return (void*) h1;
 }
 
@@ -197,7 +199,8 @@ void *buddy_calloc(size_t nmemb, size_t size){
  * @return The pointer to the resized block
  */
 void *buddy_realloc(void *ptr, size_t size){ //if ptr = NULL, call equivalent to this
-	//check initialization
+	void *ret;
+
 	if(!initialized){
 		buddy_init(size);
 	}
@@ -207,16 +210,16 @@ void *buddy_realloc(void *ptr, size_t size){ //if ptr = NULL, call equivalent to
 	}
 	
 	if(size == 0){	 //if size = 0, call equivalent to this
-		buddy_free((void *)ptr); //--------------------type? ??? ?   ? ?  
+		buddy_free(ptr);
 	}
 
-	bHeader *h1 = (bHeader *)ptr -1; 
+	//bHeader *h1 = (bHeader *)ptr -1; 
 
 	if(sizeof(bHeader) >= size){	//if block header > size then good 
 		return ptr;
 	}
 
-	void *ret = buddy_malloc(size);
+	ret = buddy_malloc(size);
 
 	if(ret){
 		memcpy(ret, ptr, sizeof(bHeader));
@@ -233,16 +236,20 @@ void *buddy_realloc(void *ptr, size_t size){ //if ptr = NULL, call equivalent to
  * @param ptr Pointer to memory block to be freed
  */
 void buddy_free(void *ptr){
-	
+	int kval;
+	bHeader *h1 = NULL;
+	bHeader *h2 = NULL;
+
 	if(ptr == NULL){	//if ptr is null, no op is done
 		return; 
 	}
 
-	bHeader *h1 = (bHeader *)(ptr) - 1; //minus size of headr 
-	int kval = h1-> kval; //getting headers kval
+	h1 = (bHeader *)(ptr) - 1; //minus size of headr 
+	kval = h1->kval; //getting headers kval
 
-	void* buddyAddy = getBuddy(kval, (void *)h1);
-	bHeader *h2 = (bHeader *)(buddyAddy);
+	void* buddyAddy;
+	buddyAddy = getBuddy(kval, (void *)h1);
+	h2 = (bHeader *)(buddyAddy);
 
 	//combining buddies
 	// while k not max || h2 tag not reserved || check h2 is free but not right kval
@@ -357,5 +364,5 @@ void* getBuddy(int kval, void* header){
 	long k = (long)kval;
 	long h = (long)header;
 
-	return ((void*) (((1 << k) ^ (h - (long)pool.start)) + (long)pool.start));
+	return (void*) (((1 << k) ^ (h - (long)pool.start)) + (long)pool.start);
 }

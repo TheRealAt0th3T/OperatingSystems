@@ -11,6 +11,15 @@
 #define FALSE 0
 
 /**
+ * Initialize the buddy system to the given size 
+ * (rounded up to the next power of two)
+ *
+ * @return  TRUE if successful, ENOMEM otherwise.
+ */
+int buddy_init(size_t);
+
+
+/**
  * Allocate dynamic memory. Rounds up the requested size to next power of two.
  * Returns a pointer that should be type casted as needed.
  * @param size  The amount of memory requested
@@ -30,7 +39,7 @@ void *calloc(size_t nmemb, size_t size);
 
 
 /**
- * Changes the size of the memory block pointed to by ptr to size bytes. 
+ * buddy_realloc() changes the size of the memory block pointed to by ptr to size bytes. 
  * The contents will be unchanged to the minimum of the old and new sizes; newly 
  * allocated memory will be uninitialized. If ptr is NULL, the call is equivalent 
  * to buddy_malloc(size); if size is equal to zero, the call is equivalent to buddy_free(ptr). 
@@ -45,7 +54,7 @@ void *realloc(void *ptr, size_t size);
 
 
 /**
- * Frees the memory space pointed to by ptr, which must have been returned 
+ * buddy_free() frees the memory space pointed to by ptr, which must have been returned 
  * by a previous call to buddy_malloc(), buddy_calloc() or buddy_realloc(). Otherwise, 
  * or if buddy_free(ptr) has already been called before, undefined behaviour occurs. If 
  * ptr is NULL, no operation is performed. 
@@ -57,6 +66,39 @@ void free(void *ptr);
 /**
  * Prints out all the lists of available blocks in the Buddy system.
  */
-void printBuddyLists();
+void printBuddyLists(void);
+
+/**
+ * @brief Converts user inputted size to a power of 2
+ * ie input = 511 this would help round it up to 512 which is 2^9
+ * 
+ * @param size the inputted size of mem block 
+ * @return new block size
+ */
+size_t powerUpSize(size_t size);
+
+/**
+ * @brief Getting kval from size 
+ * size = 2^kval
+ * 
+ * @param blockSize 
+ * @return kval 
+ */
+int getKval(size_t blockSize);
+
+/**
+*
+* Using our kval, we can "map" to a block within pool
+* @return blockNeeded
+*/
+int getBlockFromPool(int kval);
+
+/**
+ * @brief Get Buddy
+ * @param kval 
+ * @param header 
+ * @return void* buddy
+ */
+void* getBuddy(int kval, void* header);
 
 #endif /*BUDDY_H_*/
