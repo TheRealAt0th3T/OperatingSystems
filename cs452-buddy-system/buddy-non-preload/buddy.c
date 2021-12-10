@@ -1,4 +1,13 @@
+
 /**
+ * Implementation of a memory allocator based on the Buddy System.
+ * See Knuth Art of Computer Programming, vol. 1, page 442. 
+ * Each available block starts with a header that consists
+ * of a tag (free/reserved), kval (size of block 2^kval), next
+ * and previous pointers. Each reserved block has the tag and kval 
+ * field only. All allocations are done in powers of two. All requests
+ * are rounded up to the next power of two.
+ * 
  * @file buddy.c
  * @author Amara Tariq
  */

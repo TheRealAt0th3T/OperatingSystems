@@ -8,7 +8,7 @@
  * field only. All allocations are done in powers of two. All requests
  * are rounded up to the next power of two.
  * 
- * @author  TBD
+ * @author  Amara Tariq
  * 
  */
  
